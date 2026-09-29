@@ -1,0 +1,21 @@
+apiVersion: 1
+
+datasources:
+  - name: Athena
+    type: grafana-athena-datasource
+    access: proxy
+
+    jsonData:
+      authType: keys
+      defaultRegion: us-east-1
+      catalog: AwsDataCatalog
+      database: confeitaria_db
+      workgroup: confeitaria-athena
+      outputLocation: s3://s3-confeitaria-nocelli-raw/athena-results/
+
+    secureJsonData:
+      accessKey: ASIAX32MCASC2UPMK3UD
+      secretKey: 4btlokt3FJMllkign0s39eg9OAPLfkh06yXK8jik
+      sessionToken: IQoJb3JpZ2luX2VjEK3//////////wEaCXVzLXdlc3QtMiJGMEQCICEeuxw88XztDB+zOyld6SfXZ7Kp8bg3Ma7Cs9L+M0kRAiAELgwaXY8VP/MwKpdrgd2zd1HsUcEs6zhXnTvn3vKeziq1Agh2EAEaDDU0MDc4ODUyNDE2NSIMDVEPsv9qW9c+1UPEKpICoe7zqMLIdaqKzMA+RQqhaEMZ3IeC4IlM5bYXasiWRj5+5fk5o4UDP8VKEs7s0W9eB6lWIRE41Lb4kmCROa8W9/p23pj9PlgGwH9bc241zjYfTHbke4xzX5zabD2exNqni8LpbnFtpt3l7LJHQYeA8yeZRO90kWjtnvhDbbwlarspLrDF4Dyy/VBAJiPMcrmAefamqN71qkJfxrpqG/pfhEHeU/HoX5uhfrvbMq3Jau7HnYVWv1f8oXAeVicHySL9deJIwtC61lSd57zAWiQBkCFkxY57cBudi4W5y/2cvw8E2reNsJNcB/6TsUBaTRNp3zjfa0v6x6EeqxP2+qjB5JAau4uS7FtaUhcM1a0rtZesxjDi5ozRBjqeAYgDlu0lzyjew3tjpM8/8PBIEoJ9KkNZq9vw4InHoE16aSeMw2h6dt/cidzxaMPzMEN2kiUykogmXaE5ROQG7y3UBS/m3vNgT0Wx8eFUXfvjCKRJKJygI9j39LKA0U1lTkM5jca030K5bdQPqx7Gy7pnKVm70W/iTaBH1PHbVmr3G3sW2JwFU37bx7X++oL5THpjR4q2GOWGowtXc/DX
+
+    editable: true
