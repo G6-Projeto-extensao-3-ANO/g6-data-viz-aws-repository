@@ -1,14 +1,11 @@
 name: Deploy Application
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'scripts/**'
-      - 'app/**'
-      - 'docker-compose.yml'
-      - '.github/workflows/deploy.yml'
+  workflow_run:
+    workflows:
+      - Infrastructure
+    types:
+      - completed
 
 jobs:
   deploy:
@@ -123,6 +120,162 @@ jobs:
             --instance-id "${{ steps.instance.outputs.instance_id }}"
 
       - name: Mostrar resultado do deploy
+        run: |
+          aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ steps.instance.outputs.instance_id }}" \
+            --query "StandardOutputContent" \
+            --output text
+
+      - name: Compactar Docker
+        run: |
+          tar -czf docker.tar.gz infrastructure/docker
+
+          echo "Pacote Docker:"
+          ls -lh docker.tar.gz
+
+      - name: Enviar Docker para EC2
+        run: |
+          DOCKER_BASE64=$(base64 -w 0 docker.tar.gz)
+
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "${{ steps.instance.outputs.instance_id }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters "commands=[
+              \"mkdir -p /home/ubuntu\",
+              \"echo $DOCKER_BASE64 | base64 -d > /home/ubuntu/docker.tar.gz\",
+              \"rm -rf /home/ubuntu/docker\",
+              \"tar -xzf /home/ubuntu/docker.tar.gz -C /home/ubuntu\",
+              \"chown -R ubuntu:ubuntu /home/ubuntu/docker\",
+              \"rm -f /home/ubuntu/docker.tar.gz\"
+            ]" \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "Envio Docker: $COMMAND_ID"
+          echo "COMMAND_ID=$COMMAND_ID" >> "$GITHUB_ENV"
+
+      - name: Aguardar envio do Docker
+        run: |
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ steps.instance.outputs.instance_id }}"
+
+      - name: Verificar arquivos Docker
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "${{ steps.instance.outputs.instance_id }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+              "echo === Docker ===",
+              "find /home/ubuntu/docker -maxdepth 3 -type f | sort",
+              "echo",
+              "echo === Docker Compose ===",
+              "docker compose version"
+            ]' \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "Verificação: $COMMAND_ID"
+          echo "COMMAND_ID=$COMMAND_ID" >> "$GITHUB_ENV"
+
+      - name: Aguardar verificação Docker
+        run: |
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ steps.instance.outputs.instance_id }}"
+
+      - name: Mostrar arquivos Docker
+        run: |
+          aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ steps.instance.outputs.instance_id }}" \
+            --query "StandardOutputContent" \
+            --output text
+
+      - name: Validar Docker Compose
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "${{ steps.instance.outputs.instance_id }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+              "cd /home/ubuntu/docker",
+              "docker compose config"
+            ]' \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "Validação Compose: $COMMAND_ID"
+          echo "COMMAND_ID=$COMMAND_ID" >> "$GITHUB_ENV"
+
+      - name: Aguardar validação do Compose
+        run: |
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ steps.instance.outputs.instance_id }}"
+
+      - name: Mostrar validação do Compose
+        run: |
+          aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ steps.instance.outputs.instance_id }}" \
+            --query "StandardOutputContent" \
+            --output text
+
+      - name: Executar Docker Compose
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "${{ steps.instance.outputs.instance_id }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+              "cd /home/ubuntu/docker",
+              "docker compose down || true",
+              "docker compose up -d --pull always"
+            ]' \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "Docker Compose: $COMMAND_ID"
+          echo "COMMAND_ID=$COMMAND_ID" >> "$GITHUB_ENV"
+
+      - name: Aguardar Docker Compose
+        run: |
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ steps.instance.outputs.instance_id }}"
+
+      - name: Verificar containers
+        run: |
+          aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ steps.instance.outputs.instance_id }}" \
+            --query "StandardOutputContent" \
+            --output text
+
+      - name: Status dos containers
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "${{ steps.instance.outputs.instance_id }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+              "cd /home/ubuntu/docker",
+              "docker compose ps",
+              "echo",
+              "docker ps --format \"table {{.Names}}\\t{{.Status}}\\t{{.Ports}}\""
+            ]' \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "Status command: $COMMAND_ID"
+          echo "COMMAND_ID=$COMMAND_ID" >> "$GITHUB_ENV"
+
+      - name: Aguardar status
+        run: |
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ steps.instance.outputs.instance_id }}"
+
+      - name: Mostrar status final
         run: |
           aws ssm get-command-invocation \
             --command-id "$COMMAND_ID" \
