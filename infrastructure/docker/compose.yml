@@ -1,13 +1,24 @@
 services:
 
+  kali-lab:
+    image: kasmweb/kali-rolling-desktop:1.15.0
+    container_name: kali-lab
+    privileged: true
+    shm_size: 512m
+    ports:
+      - "6901:6901"
+    environment:
+      VNC_PW: urubu100
+    networks:
+      - monitoring
+      - app-network
+    restart: unless-stopped
+
   prometheus:
     image: prom/prometheus
     container_name: prometheus
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    depends_on:
-      - data_processing
-      - telegraf
     networks:
       - app-network
       - monitoring
@@ -50,15 +61,6 @@ services:
       - prometheus
     networks:
       - monitoring
-
-  data_processing:  
-    build:
-      context: .
-      dockerfile: app/Dockerfile
-    ports:
-      - 5000:5000
-    networks:
-      - app-network
 
 volumes:
   grafana_data_sec:

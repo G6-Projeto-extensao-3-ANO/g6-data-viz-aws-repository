@@ -8,7 +8,7 @@ scrape_configs:
     metrics_path: '/metrics'
     static_configs:
       - targets:
-          - 'data_processing:5000'
+          - 'data_processing:9558'
 
   # Telegraf - Data Ingestion
   - job_name: 'IoT-azure-data-ingestion'

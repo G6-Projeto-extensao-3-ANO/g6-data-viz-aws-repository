@@ -1,6 +1,13 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: EC2 Ubuntu para DevSecOps e disponibilização de longo prazo
 Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: ID da VPC onde a EC2 será criada
+
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: ID da subnet onde a EC2 será criada
   LabInstanceProfile:
     Type: String
     Description: Instance Profile associado a LabRole
@@ -22,13 +29,32 @@ Resources:
     Type: AWS::EC2::SecurityGroup
 
     Properties:
-      GroupDescription: EC2 sem SSH - acesso via AWS Systems Manager
-      VpcId:
-        Fn::ImportValue: Projeto-VpcId
+      GroupDescription: EC2 Ubuntu - HTTP HTTPS JupyterLab e acesso via AWS Systems Manager
 
-      SecurityGroupIngress: []
+      VpcId:
+        Ref: VpcId
+
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+          Description: Acesso HTTP
+
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: Acesso HTTPS
+
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          CidrIp: 0.0.0.0/0
+          Description: Acesso ao JupyterLab
 
       SecurityGroupEgress:
+
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
 
@@ -47,7 +73,7 @@ Resources:
         Ref: InstanceType
 
       SubnetId:
-        Fn::ImportValue: Projeto-PublicSubnetId
+        Ref: SubnetId
 
       SecurityGroupIds:
         - Ref: EC2SecurityGroup
@@ -84,7 +110,7 @@ Outputs:
     Value:
       Ref: EC2Instance
     Export:
-      Name: Projeto-InstanceId
+      Name: Data-Viz-InstanceId
 
   InstancePublicIp:
     Description: IP publico da EC2
