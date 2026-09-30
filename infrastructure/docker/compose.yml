@@ -1,0 +1,72 @@
+services:
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - data_processing
+      - telegraf
+    networks:
+      - app-network
+      - monitoring
+
+  grafana_app:  
+    image: grafana/grafana-oss:latest
+    container_name: grafana_app
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+    - .env
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_APP_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_APP_PASSWORD}
+      # GF_INSTALL_PLUGINS: grafana-athena-datasource
+    volumes:
+      - grafana_data_app:/var/lib/grafana
+      - ./grafana/app/provisioning:/etc/grafana/provisioning
+      - ./grafana/app/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - app-network
+
+  grafana_sec:  
+    image: grafana/grafana-oss:latest
+    container_name: grafana_sec
+    restart: always
+    ports:
+      - "3333:3000"
+    env_file:
+    - .env
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_SEC_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_SEC_PASSWORD}
+    volumes:
+      - grafana_data_sec:/var/lib/grafana
+      - ./grafana/sec/provisioning:/etc/grafana/provisioning
+      - ./grafana/sec/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring
+
+  data_processing:  
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    ports:
+      - 5000:5000
+    networks:
+      - app-network
+
+volumes:
+  grafana_data_sec:
+  grafana_data_app:
+
+networks:
+  app-network:
+    driver: bridge
+
+  monitoring:
+    driver: bridge
