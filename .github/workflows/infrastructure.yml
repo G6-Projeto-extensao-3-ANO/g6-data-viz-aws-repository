@@ -83,7 +83,7 @@ jobs:
       - name: Deploy EC2
         run: |
           aws cloudformation deploy \
-            --stack-name data-processing-ec2 \
+            --stack-name data-viz-ec2 \
             --template-file infrastructure/cloudformation/01-ec2.yaml \
             --region us-east-1 \
             --parameter-overrides \
