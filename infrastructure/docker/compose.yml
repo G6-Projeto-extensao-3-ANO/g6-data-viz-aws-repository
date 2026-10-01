@@ -34,7 +34,6 @@ services:
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_APP_USER}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_APP_PASSWORD}
-      # GF_INSTALL_PLUGINS: grafana-athena-datasource
     volumes:
       - grafana_data_app:/var/lib/grafana
       - ./grafana/app/provisioning:/etc/grafana/provisioning
