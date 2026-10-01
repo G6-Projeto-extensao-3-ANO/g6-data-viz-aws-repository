@@ -207,7 +207,7 @@ jobs:
 
       - name: Compactar Docker
         run: |
-          tar -czf docker.tar.gz infrastructure/docker
+          tar -czf docker.tar.gz infrastructure/docker/
 
           echo "Pacote Docker:"
           ls -lh docker.tar.gz
