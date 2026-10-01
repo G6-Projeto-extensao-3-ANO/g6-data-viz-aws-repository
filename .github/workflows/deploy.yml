@@ -221,11 +221,11 @@ jobs:
             --document-name "AWS-RunShellScript" \
             --parameters "commands=[
               \"mkdir -p /home/ubuntu\",
-              \"echo $DOCKER_BASE64 | base64 -d > /home/ubuntu/docker.tar.gz\",
-              \"rm -rf /home/ubuntu/docker\",
-              \"tar -xzf /home/ubuntu/docker.tar.gz -C /home/ubuntu\",
-              \"chown -R ubuntu:ubuntu /home/ubuntu/docker\",
-              \"rm -f /home/ubuntu/docker.tar.gz\"
+              \"echo $DOCKER_BASE64 | base64 -d > /home/ubuntu/infrastructure/docker.tar.gz\",
+              \"rm -rf /home/ubuntu/infrastructure/docker\",
+              \"tar -xzf /home/ubuntu/infrastructure/docker.tar.gz -C /home/ubuntu\",
+              \"chown -R ubuntu:ubuntu /home/ubuntu/infrastructure/docker\",
+              \"rm -f /home/ubuntu/infrastructure/docker.tar.gz\"
             ]" \
             --query "Command.CommandId" \
             --output text)
@@ -246,7 +246,7 @@ jobs:
             --document-name "AWS-RunShellScript" \
             --parameters 'commands=[
               "echo === Docker ===",
-              "find /home/ubuntu/docker -maxdepth 3 -type f | sort",
+              "find /home/ubuntu/infrastructure/docker -maxdepth 3 -type f | sort",
               "echo",
               "echo === Docker Compose ===",
               "docker compose version"
@@ -277,7 +277,7 @@ jobs:
             --instance-ids "${{ steps.instance.outputs.instance_id }}" \
             --document-name "AWS-RunShellScript" \
             --parameters 'commands=[
-              "cd /home/ubuntu/docker",
+              "cd /home/ubuntu/infrastructure/docker",
               "docker compose config"
             ]' \
             --query "Command.CommandId" \
@@ -306,7 +306,7 @@ jobs:
             --instance-ids "${{ steps.instance.outputs.instance_id }}" \
             --document-name "AWS-RunShellScript" \
             --parameters 'commands=[
-              "cd /home/ubuntu/docker",
+              "cd /home/ubuntu/infrastructure/docker",
               "docker compose down || true",
               "docker compose up -d --pull always"
             ]' \
@@ -336,7 +336,7 @@ jobs:
             --instance-ids "${{ steps.instance.outputs.instance_id }}" \
             --document-name "AWS-RunShellScript" \
             --parameters 'commands=[
-              "cd /home/ubuntu/docker",
+              "cd /home/ubuntu/infrastructure/docker",
               "docker compose ps",
               "echo",
               "docker ps --format \"table {{.Names}}\\t{{.Status}}\\t{{.Ports}}\""
