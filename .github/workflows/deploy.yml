@@ -212,7 +212,7 @@ jobs:
           echo "Pacote Docker:"
           ls -lh docker.tar.gz
 
-      - name: Enviar Docker para EC2
+            - name: Enviar Docker para EC2
         run: |
           DOCKER_BASE64=$(base64 -w 0 docker.tar.gz)
 
@@ -220,12 +220,13 @@ jobs:
             --instance-ids "${{ steps.instance.outputs.instance_id }}" \
             --document-name "AWS-RunShellScript" \
             --parameters "commands=[
-              \"mkdir -p /home/ubuntu\",
-              \"echo $DOCKER_BASE64 | base64 -d > /home/ubuntu/infrastructure/docker.tar.gz\",
+              \"echo $DOCKER_BASE64 | base64 -d > /home/ubuntu/docker.tar.gz\",
               \"rm -rf /home/ubuntu/infrastructure/docker\",
-              \"tar -xzf /home/ubuntu/infrastructure/docker.tar.gz -C /home/ubuntu\",
+              \"tar -xzf /home/ubuntu/docker.tar.gz -C /home/ubuntu\",
               \"chown -R ubuntu:ubuntu /home/ubuntu/infrastructure/docker\",
-              \"rm -f /home/ubuntu/infrastructure/docker.tar.gz\"
+              \"rm -f /home/ubuntu/docker.tar.gz\",
+              \"echo '=== ARQUIVOS ENVIADOS ==='\",
+              \"find /home/ubuntu/infrastructure/docker -maxdepth 3 -type f | sort\"
             ]" \
             --query "Command.CommandId" \
             --output text)

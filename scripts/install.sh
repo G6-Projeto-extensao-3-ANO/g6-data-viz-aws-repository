@@ -4,10 +4,6 @@ set -e
 
 echo "Preparando Ambiente (Aguarde...)"
 
-apt-get update -y
-
-apt-get upgrade -y
-
 apt-get install -y \
     curl \
     wget \
