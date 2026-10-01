@@ -53,6 +53,18 @@ Resources:
           CidrIp: 0.0.0.0/0
           Description: Acesso ao JupyterLab
 
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          CidrIp: 0.0.0.0/0
+          Description: Acesso Grafana App
+
+        - IpProtocol: tcp
+          FromPort: 3333
+          ToPort: 3333
+          CidrIp: 0.0.0.0/0
+          Description: Acesso Grafana Sec
+
       SecurityGroupEgress:
 
         - IpProtocol: -1
