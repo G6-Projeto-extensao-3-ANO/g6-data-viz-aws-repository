@@ -3,7 +3,9 @@
 set -e
 
 echo "Preparando Ambiente (Aguarde...)"
+
 apt-get update -y
+
 apt-get upgrade -y
 
 apt-get install -y \
@@ -24,11 +26,23 @@ systemctl start amazon-ssm-agent || true
 
 install -m 0755 -d /etc/apt/keyrings
 
-echo "Baixando Docker (Aguarde...)"
+echo "Instalando Docker e Docker Compose (Aguarde...)"
 
-apt install docker.io -y
+apt-get install -y \
+    docker.io \
+    docker-compose-v2
 
 systemctl enable docker
 systemctl start docker
 
 usermod -aG docker ubuntu
+
+echo "Verificando Docker..."
+docker --version
+
+echo "Verificando Docker Compose..."
+docker compose version
+
+echo "========================================="
+echo " Ambiente preparado com sucesso!"
+echo "========================================="
