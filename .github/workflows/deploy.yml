@@ -212,7 +212,7 @@ jobs:
           echo "Pacote Docker:"
           ls -lh docker.tar.gz
 
-            - name: Enviar Docker para EC2
+      - name: Enviar Docker para EC2
         run: |
           DOCKER_BASE64=$(base64 -w 0 docker.tar.gz)
 
