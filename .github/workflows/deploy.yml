@@ -27,7 +27,7 @@ jobs:
         id: instance
         run: |
           INSTANCE_ID=$(aws cloudformation describe-stacks \
-            --stack-name projeto-ec2 \
+            --stack-name data-viz-ec2 \
             --query "Stacks[0].Outputs[?OutputKey=='InstanceId'].OutputValue" \
             --output text)
           echo "instance_id=$INSTANCE_ID" >> "$GITHUB_OUTPUT"

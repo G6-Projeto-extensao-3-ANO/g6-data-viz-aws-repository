@@ -120,6 +120,6 @@ Outputs:
         - PublicIp
 
   SecurityGroupId:
-    Description: Security Group da EC2
+    Description: Security Group da EC2 # teste
     Value:
       Ref: EC2SecurityGroup
