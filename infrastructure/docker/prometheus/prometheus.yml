@@ -22,7 +22,7 @@ scrape_configs:
     metrics_path: '/metrics'
     static_configs:
       - targets:
-          - 'grafana_teste:3000'
+          - 'grafana_sec:3333'
 
   # Grafana - AWS
   - job_name: 'IoT-aws-data-visualizing'
