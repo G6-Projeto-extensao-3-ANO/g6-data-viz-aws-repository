@@ -25,8 +25,10 @@ echo "kasm-user ALL=(ALL) ALL" >> /etc/sudoers
 
 # Compatibilidade caso o usuário com hífen exista
 if id "kasm-user" >/dev/null 2>&1; then
-    echo "kasm-user:urubu100" | chpasswd
-    echo "kasm-user ALL=(ALL) ALL" >> /etc/sudoers
+    echo "kasm_user:urubu100" | chpasswd
+    echo "kasm_user ALL=(ALL) ALL" >> /etc/sudoers
+    echo 'kasm-user:urubu100' | chpasswd
+    echo 'kasm-user ALL=(ALL) ALL' >> /etc/sudoers
 fi
 
 echo "Atualizando repositórios..."
