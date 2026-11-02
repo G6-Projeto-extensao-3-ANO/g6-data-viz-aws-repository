@@ -7,7 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 COPY setup.sh /usr/local/sbin/kali-setup.sh
 
 RUN chmod 0755 /usr/local/sbin/kali-setup.sh \
-    && bash -x /usr/local/sbin/kali-setup.sh \
+    && /usr/local/sbin/kali-setup.sh \
     && rm -f /usr/local/sbin/kali-setup.sh \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
