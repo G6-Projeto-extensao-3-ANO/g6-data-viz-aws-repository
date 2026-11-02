@@ -1,3 +1,4 @@
+
 #!/usr/bin/env bash
 
 set -Eeuo pipefail
@@ -11,26 +12,23 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-# Confirma que o usuário padrão existe.
+# Confirma a existência do usuário padrão Kasm.
 if ! id kasm-user >/dev/null 2>&1; then
     echo "ERRO: o usuário kasm-user não existe na imagem-base."
     exit 1
 fi
 
-# A imagem deve utilizar somente os repositórios Kali Rolling.
-# Isso evita misturar versões de pacotes do Debian Unstable.
+# Remove configurações anteriores dos repositórios.
 mkdir -p /etc/apt/sources.list.d
 
 find /etc/apt/sources.list.d \
     -maxdepth 1 -type f \
     -delete
 
-cat > /etc/apt/sources.list <<'EOF'
-deb http://http.kali.org/kali kali-rolling main contrib non-free non-free-firmware
-EOF
+# Evita duplicidade de repositórios.
+: > /etc/apt/sources.list
 
-# Obtém e valida a chave oficial de assinatura do Kali.
-# Não desativa a validação GPG do APT.
+# Obtém e valida a chave oficial do Kali.
 KEY_URL="https://archive.kali.org/archive-key.asc"
 KEY_FILE="$(mktemp)"
 GNUPG_HOME="$(mktemp -d)"
@@ -39,6 +37,7 @@ cleanup() {
     rm -f "$KEY_FILE"
     rm -rf "$GNUPG_HOME"
 }
+
 trap cleanup EXIT
 
 export GNUPGHOME="$GNUPG_HOME"
@@ -49,24 +48,28 @@ if command -v curl >/dev/null 2>&1; then
 elif command -v wget >/dev/null 2>&1; then
     wget -q "$KEY_URL" -O "$KEY_FILE"
 else
-    echo "ERRO: curl ou wget é necessário para obter a chave oficial."
+    echo "ERRO: curl ou wget é necessário."
     exit 1
 fi
 
-# Confirma a impressão digital publicada pelo Kali.
+# Valida a impressão digital da chave.
 FINGERPRINT="$(
     gpg --batch --show-keys --with-colons "$KEY_FILE" |
-    awk -F: '$1 == "fpr" { print toupper($10); exit }'
+    awk -F: '$1 == "fpr" {
+        print toupper($10)
+        exit
+    }'
 )"
 
 EXPECTED_FINGERPRINT="827C8569F2518CC677FECA1AED65462EC8D5E4C5"
 
 if [ "$FINGERPRINT" != "$EXPECTED_FINGERPRINT" ]; then
-    echo "ERRO: impressão digital inesperada para a chave do Kali."
+    echo "ERRO: impressão digital inesperada."
     echo "Obtida: $FINGERPRINT"
     exit 1
 fi
 
+# Instala a chave validada.
 install -d -m 0755 /usr/share/keyrings
 
 gpg --batch --yes --dearmor \
@@ -75,7 +78,7 @@ gpg --batch --yes --dearmor \
 
 chmod 0644 /usr/share/keyrings/kali-archive-keyring.gpg
 
-# Usa a chave verificada explicitamente pelo repositório.
+# Configura somente um repositório Kali.
 cat > /etc/apt/sources.list.d/kali.sources <<'EOF'
 Types: deb
 URIs: http://http.kali.org/kali/
@@ -84,10 +87,14 @@ Components: main contrib non-free non-free-firmware
 Signed-By: /usr/share/keyrings/kali-archive-keyring.gpg
 EOF
 
-# Atualiza o índice e instala apenas os pacotes necessários.
+# Atualiza somente os índices dos pacotes.
 apt-get update
 
-apt-get install -y --no-install-recommends \
+# Instala as ferramentas sem atualizar indiscriminadamente
+# os pacotes já existentes na imagem Kasm.
+apt-get install -y \
+    --no-install-recommends \
+    --no-upgrade \
     sudo \
     nano \
     nmap \
@@ -95,8 +102,7 @@ apt-get install -y --no-install-recommends \
     autopsy \
     sleuthkit
 
-# Configura o sudo sem duplicar linhas a cada execução.
-# NOPASSWD é intencional para o laboratório descartável.
+# Configura sudo para o usuário do laboratório.
 install -d -m 0750 /etc/sudoers.d
 
 printf '%s\n' \
@@ -105,16 +111,28 @@ printf '%s\n' \
 
 chmod 0440 /etc/sudoers.d/kasm-user
 
+# Valida a configuração do sudo.
 visudo -cf /etc/sudoers
 
 # Garante a propriedade do diretório pessoal.
 mkdir -p /home/kasm-user
 chown -R 1000:1000 /home/kasm-user
 
+# Verifica as ferramentas instaladas.
+echo "========================================="
+echo "Verificando ferramentas"
+echo "========================================="
+
+command -v nmap
+command -v hydra
+command -v autopsy
+command -v sleuthkit || true
+
+nmap --version
+hydra -h >/dev/null
+
 echo "========================================="
 echo "Configuração concluída"
 echo "========================================="
 
 id kasm-user
-nmap --version | head -n 2
-hydra -h 2>&1 | head -n 2
