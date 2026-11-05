@@ -1,32 +1,55 @@
+
 global:
   scrape_interval: 15s
+  evaluation_interval: 15s
 
 scrape_configs:
 
-  # FastAPI - Data Processing
-  - job_name: 'IoT-aws-data-processing'
-    metrics_path: '/metrics'
-    static_configs:
-      - targets:
-          - 'data_processing:9558'
-
-  # Telegraf - Data Ingestion
   - job_name: 'IoT-azure-data-ingestion'
     metrics_path: '/metrics'
     static_configs:
       - targets:
           - 'telegraf:9273'
+        labels:
+          cloud: 'azure'
+          environment: 'lab'
+          service: 'data-ingestion'
 
-  # Grafana - Azure
   - job_name: 'IoT-azure-data-visualizing'
     metrics_path: '/metrics'
     static_configs:
       - targets:
-          - 'grafana_sec:3000'
+          - 'grafana_real_time:3000'
+        labels:
+          cloud: 'azure'
+          environment: 'lab'
+          service: 'grafana-real-time'
 
-  # Grafana - AWS
+  - job_name: 'IoT-aws-data-processing'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets:
+          - 'data_processing:9558'
+        labels:
+          cloud: 'aws'
+          environment: 'lab'
+          service: 'data-processing'
+
   - job_name: 'IoT-aws-data-visualizing'
     metrics_path: '/metrics'
     static_configs:
       - targets:
           - 'grafana_app:3000'
+        labels:
+          cloud: 'aws'
+          environment: 'lab'
+          service: 'grafana-app'
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets:
+          - 'localhost:9090'
+        labels:
+          cloud: 'aws'
+          environment: 'lab'
+          service: 'prometheus'
