@@ -472,10 +472,10 @@ jobs:
             --arg tig "$IP_TIG" \
             '{
               commands: [
-                "sudo sed -i '\''/ mosquitto$/d; / tig$/d'\'' /etc/hosts",
-                ("echo '\''" + $mosquitto + " mosquitto'\'' | sudo tee -a /etc/hosts > /dev/null"),
-                ("echo '\''" + $tig + " tig'\'' | sudo tee -a /etc/hosts > /dev/null"),
-                "echo '=== HOSTS ATUALIZADO ==='",
+                "sudo sed -i -e \"/ mosquitto$/d\" -e \"/ tig$/d\" /etc/hosts",
+                ("echo \"" + $mosquitto + " mosquitto\" | sudo tee -a /etc/hosts > /dev/null"),
+                ("echo \"" + $tig + " tig\" | sudo tee -a /etc/hosts > /dev/null"),
+                "echo HOSTS ATUALIZADO",
                 "tail -n 10 /etc/hosts"
               ]
             }')
